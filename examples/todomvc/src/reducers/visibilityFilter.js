@@ -1,13 +1,10 @@
-import { SET_VISIBILITY_FILTER } from '../constants/ActionTypes'
+import { simpleReducer } from 'redux-shine'
+
+import { setVisibilityFilter } from '../actions'
 import { SHOW_ALL } from '../constants/TodoFilters'
 
-const visibilityFilter = (state = SHOW_ALL, action) => {
-  switch (action.type) {
-    case SET_VISIBILITY_FILTER:
-      return action.filter
-    default:
-      return state
-  }
-}
+const initialState = { value: SHOW_ALL }
 
-export default visibilityFilter
+export default simpleReducer({
+  [setVisibilityFilter]: { msg: value } => ({ value })
+}, initialState)

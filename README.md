@@ -1,4 +1,4 @@
-## redux-shine
+# redux-shine
 
 A library of Redux utilities to reduce (pun intended) the boilerplate/repetition, while still keeping containers/actions/reducers/selectors separate. It is meant to be used with React.
 
@@ -9,6 +9,25 @@ This library is built on top of two other small libraries, which must be install
 - react-redux
 - redux-actions
 
+## Exports
+
+redux-shine exports the following properties:
+
+**Component Helpers**
+- pick
+- simpleConnect
+
+**Action Helpers**
+- asyncAction
+- directAction
+- LOADING
+
+**Reducer Helpers**
+- entitiesReducer
+- simpleReducer
+
+
+## Examples
 
 ```js
 /* Component.js */
@@ -57,7 +76,7 @@ export const createTodo = asyncAction(
 
 **someReducer.js**
 ```js
-import { actionHandler } from 'redux-shine';
+import { simpleReducer } from 'redux-shine';
 
 import { createTodo } from '../someActions';
 
@@ -68,17 +87,17 @@ const initState = {
   loading: false
 };
 
-export default actionHandler(initState, {
+export default simpleReducer({
   [createTodo]: createTodoHandler,
-});
+}, initState);
 
 /* Action Handlers */
 
-function createTodoHandler ({ state, cargo, err, loading, meta }) {
+function createTodoHandler ({ state, msg, err, loading, meta }) {
   return {
     errMsg: err ? err.message : state.errMsg,
-    latestTodo: cargo || state.latestTodo,
-    latestUpdate: cargo ? meta.latestUpdate : state.latestUpdate,
+    latestTodo: msg || state.latestTodo,
+    latestUpdate: msg ? meta.latestUpdate : state.latestUpdate,
     loading
   };
 }
@@ -86,32 +105,35 @@ function createTodoHandler ({ state, cargo, err, loading, meta }) {
 
 **someEntityReducer.js**
 ```js
-import { actionHandler, replaceWith } from 'redux-shine';
+import { entitiesReducer } from 'redux-shine';
 
 import { createTodo } from '../someActions';
 
-export default actionHandler({
+export default entitiesReducer({ name: 'todos', id: 'id' }, {
   [createTodo]: asyncReducer(createTodoHandler)
 }, {} /* optional, this is the default initState */);
 
 /* Action Handlers */
 
-function createTodoHandler ({ state, cargo, err, loading, meta }) {
-  if (cargo) {
-    return {
-      [cargo.id]: cargo       // adds or replaces entity [cargo.id]
-    };
+function createTodoHandler ({ state, msg, err, loading, meta, todos }) {
+  if (msg) {
+    return todos.set(msg.id, msg); // adds or sets the entity [msg.id] in our entity store
   }
 
   // or
 
-  let newState = { ...state };
-  delete newState[cargo.id];
-  return replaceWith(newState); // deletes entity [cargo.id] from our entity store
+  return todos.delete(msg.id) // deletes entity [msg.id] from our entity store
 
   // or
 
-  return replaceWith({});       // replaces the whole entity store with the provided argument
+  const todo = todos.get(msg.id)  // get the entity [msg.id]
+  return todos.update(todo.id, { completed: !todo.completed }) // update an entity partially
+
+  // or
+
+  const allTodos = todos.get()   // retrieve all entities, as an array
+  const completedTodoIds = allTodos.filter(todo => todo.completed).map(todo => todo.id)
+  return todos.delete(completedTodoIds)  // delete multiple entities by providing an arra of ids
 
   // or
 

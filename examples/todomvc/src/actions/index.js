@@ -7,4 +7,3 @@ export const completeTodo = directAction('COMPLETE_TODO')
 export const completeAllTodos = directAction('COMPLETE_ALL_TODOS')
 export const clearCompleted = directAction('CLEAR_COMPLETED')
 export const setVisibilityFilter = directAction('SET_VISIBILITY_FILTER')
-

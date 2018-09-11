@@ -24,7 +24,5 @@ Your app is ready to be deployed!
 
 ## To Do
 
-- Update index.spec.js
-- Update reducers folder
 - Update selectors folder
 - Update components, delete containers folder

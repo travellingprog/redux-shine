@@ -1,62 +1,58 @@
+import { entitiesReducer }  from 'redux-shine'
+
 import {
-  ADD_TODO,
-  DELETE_TODO,
-  EDIT_TODO,
-  COMPLETE_TODO,
-  COMPLETE_ALL_TODOS,
-  CLEAR_COMPLETED
-} from '../constants/ActionTypes'
+  addTodo
+  deleteTodo
+  editTodo
+  completeTodo
+  completeAllTodos
+  clearCompleted
+  setVisibilityFilter
+} from '../actions'
 
-const initialState = [
-  {
+// Our state is an entity map (id-to-entity)
+const initialState = {
+  '0': {
+    id: 0,
     text: 'Use Redux',
-    completed: false,
-    id: 0
-  }
-]
-
-export default function todos(state = initialState, action) {
-  switch (action.type) {
-    case ADD_TODO:
-      return [
-        ...state,
-        {
-          id: state.reduce((maxId, todo) => Math.max(todo.id, maxId), -1) + 1,
-          completed: false,
-          text: action.text
-        }
-      ]
-
-    case DELETE_TODO:
-      return state.filter(todo =>
-        todo.id !== action.id
-      )
-
-    case EDIT_TODO:
-      return state.map(todo =>
-        todo.id === action.id ?
-          { ...todo, text: action.text } :
-          todo
-      )
-
-    case COMPLETE_TODO:
-      return state.map(todo =>
-        todo.id === action.id ?
-          { ...todo, completed: !todo.completed } :
-          todo
-      )
-
-    case COMPLETE_ALL_TODOS:
-      const areAllMarked = state.every(todo => todo.completed)
-      return state.map(todo => ({
-        ...todo,
-        completed: !areAllMarked
-      }))
-
-    case CLEAR_COMPLETED:
-      return state.filter(todo => todo.completed === false)
-
-    default:
-      return state
+    completed: false
   }
 }
+
+export default entitiesReducer({ id: 'id', name: 'todos' }, {
+  [addTodo]: ({ todos, msg: text }) => {
+    const allIds = todos.get().map(todo => todo.id)
+    const id = allIds.length ? Math.max(...allIds) + 1 : 0;
+
+    return todos.set(id, {
+      id,
+      completed: false,
+      text
+    }
+  },
+
+  [deleteTodo]: ({ todos, msg: id }) => {
+    return todos.delete(id)
+  }
+
+  [editTodo]: ({ todos, msg }) => {
+    return todos.update(msg.id, { text: msg.text })
+  }
+
+  [completeTodo]: ({ todos, msg: id }) => {
+    const todo = todos.get(id)
+    return todos.update(id, { completed: !todo.completed })
+  }
+
+  [completeAllTodos]: ({ todos }) => {
+    const allTodos = todos.get()
+    const areAllMarked = todos.every(todo => todo.completed)
+    return todos.update(allTodos, { completed, !areAllMarked })
+  }
+
+  [clearCompleted]: ({ todos }) => {
+    const completedTodos = todos.get().filter(todo => todo.completed)
+    return todos.delete(completedTodos)
+  }
+}, initialState)
+
